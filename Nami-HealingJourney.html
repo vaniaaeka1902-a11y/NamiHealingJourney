@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NAMI – Healing Journey</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #faedf7;
+        color: #444;
+    }
+
+    .slide {
+        display: none;
+        padding: 20px;
+        max-width: 420px;
+        margin: auto;
+    }
+
+    .show {
+        display: block;
+    }
+
+    h1, h2 {
+        text-align: center;
+        color: #7a57c7;
+    }
+
+    /* -------- LOADING PAGE -------- */
+    #loadingPage {
+        position: fixed;
+        inset: 0;
+        background: #f7ebff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .loading-box {
+        text-align: center;
+        padding: 25px 40px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+
+    /* -------- COVER SLIDE -------- */
+    .cover {
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 0 15px rgba(0,0,0,0.05);
+    }
+
+    button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 20px;
+        background: #a27be7;
+        border: none;
+        border-radius: 15px;
+        color: white;
+        font-size: 16px;
+    }
+
+    select, textarea {
+        width: 100%;
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid #d2c3e6;
+        font-size: 15px;
+        margin-top: 10px;
+    }
+
+    .card {
+        background: white;
+        padding: 15px;
+        border-radius: 15px;
+        margin-top: 15px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.06);
+    }
+
+</style>
+</head>
+
+<body>
+
+<!-- =============================== -->
+<!-- LOADING PAGE -->
+<!-- =============================== -->
+<div id="loadingPage">
+    <div class="loading-box">
+        <h2>Loading…</h2>
+        <p>Sedang menyiapkan perjalanan healingmu 💜</p>
+    </div>
+</div>
+
+<!-- =============================== -->
+<!-- SLIDE 1 — COVER -->
+<!-- =============================== -->
+<div class="slide show" id="slideCover">
+    <h2>Selamat Datang di Aplikasi Tracking Mood</h2>
+
+    <div class="cover" id="coverBox">
+        <h1>NAMI – Healing Journey</h1>
+        <p>Pelan-pelan memahami dirimu setiap hari</p>
+    </div>
+
+    <button onclick="goTo('slideInput')">Mulai</button>
+</div>
+
+<!-- =============================== -->
+<!-- SLIDE 2 — INPUT MOOD -->
+<!-- =============================== -->
+<div class="slide" id="slideInput">
+    <h2>Bagaimana perasaanmu hari ini?</h2>
+
+    <select id="moodSelect">
+        <option value="">Pilih mood...</option>
+        <option value="senang">Senang</option>
+        <option value="sedih">Sedih</option>
+        <option value="stres">Stres</option>
+        <option value="lelah">Lelah</option>
+        <option value="biasa">Biasa saja</option>
+    </select>
+
+    <textarea id="journalText" rows="5" placeholder="Ceritakan apa yang terjadi hari ini..."></textarea>
+
+    <button onclick="simpanMood()">Simpan</button>
+</div>
+
+<!-- =============================== -->
+<!-- SLIDE 3 — REKAP -->
+<!-- =============================== -->
+<div class="slide" id="slideRekap">
+    <h2>Rekap Perjalananmu</h2>
+
+    <div id="rekapList"></div>
+
+    <button onclick="goTo('slideInput')">Isi Mood Lagi</button>
+</div>
+
+
+<script>
+/* ============================= */
+/* LOADING PAGE FUNCTION */
+/* ============================= */
+window.addEventListener("load", function () {
+    setTimeout(() => {
+        document.getElementById("loadingPage").style.display = "none";
+    }, 1500);
+});
+
+/* ============================= */
+/* NAVIGASI SLIDE */
+/* ============================= */
+function goTo(id) {
+    document.querySelectorAll(".slide").forEach(s => s.classList.remove("show"));
+    document.getElementById(id).classList.add("show");
+}
+
+/* ============================= */
+/* MOTIVASI BERDASARKAN MOOD */
+/* ============================= */
+function getMotivation(mood) {
+    const list = {
+        senang: "Pertahankan energi positifmu hari ini. Kamu sedang bersinar!",
+        sedih: "Tidak apa-apa merasa sedih. Izinkan dirimu beristirahat.",
+        stres: "Tarik napas… kamu sudah melakukan yang terbaik sejauh ini.",
+        lelah: "Kamu butuh jeda. Jangan lupa merawat dirimu juga.",
+        biasa: "Hari yang biasa tetap berarti. Kamu tetap berkembang."
+    };
+    return list[mood] || "";
+}
+
+/* ============================= */
+/* SIMPAN MOOD + JURNAL */
+/* ============================= */
+function simpanMood() {
+    const mood = document.getElementById("moodSelect").value;
+    const jurnal = document.getElementById("journalText").value;
+
+    if (!mood) {
+        alert("Pilih mood terlebih dahulu!");
+        return;
+    }
+
+    const data = {
+        tanggal: new Date().toLocaleDateString("id-ID"),
+        mood: mood,
+        jurnal: jurnal,
+        motivasi: getMotivation(mood)
+    };
+
+    let riwayat = JSON.parse(localStorage.getItem("rekapMood")) || [];
+    riwayat.push(data);
+    localStorage.setItem("rekapMood", JSON.stringify(riwayat));
+
+    updateCover(mood);
+    tampilkanRekap();
+    goTo("slideRekap");
+}
+
+/* ============================= */
+/* UPDATE COVER SESUAI MOOD */
+/* ============================= */
+function updateCover(mood) {
+    const cover = document.getElementById("coverBox");
+
+    const warna = {
+        senang: "#ffe8a9",
+        sedih: "#cbd7ff",
+        stres: "#ffd1d1",
+        lelah: "#e8d8ff",
+        biasa: "#ffffff"
+    };
+
+    cover.style.background = warna[mood] || "#ffffff";
+}
+
+/* ============================= */
+/* TAMPILKAN REKAP */
+/* ============================= */
+function tampilkanRekap() {
+    let data = JSON.parse(localStorage.getItem("rekapMood")) || [];
+    let box = document.getElementById("rekapList");
+    box.innerHTML = "";
+
+    data.forEach(item => {
+        box.innerHTML += `
+            <div class="card">
+                <b>${item.tanggal}</b><br>
+                Mood: <b>${item.mood}</b><br><br>
+                Catatan: ${item.jurnal || "-"}<br><br>
+                <i>Motivasi: ${item.motivasi}</i>
+            </div>
+        `;
+    });
+}
+
+tampilkanRekap();
+</script>
+
+</body>
+</html>
